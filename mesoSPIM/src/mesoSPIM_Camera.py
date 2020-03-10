@@ -242,6 +242,14 @@ class mesoSPIM_Camera(QtCore.QObject):
         tifffile.imsave(path, image, photometric='minisblack')
 
     @QtCore.pyqtSlot()
+    def snap_live_image(self):
+        ''' Used to   '''
+        image = self.camera.get_image()
+        image = np.rot90(image)
+
+        self.sig_camera_frame.emit(image[0:self.x_pixels:self.camera_display_snap_subsampling,0:self.y_pixels:self.camera_display_snap_subsampling])
+
+    @QtCore.pyqtSlot()
     def prepare_live(self):
         self.camera.initialize_live_mode()
 
