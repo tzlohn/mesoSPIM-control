@@ -70,6 +70,7 @@ class mesoSPIM_Core(QtCore.QObject):
     sig_get_live_image = QtCore.pyqtSignal()
     sig_get_snap_image = QtCore.pyqtSignal()
     sig_end_live = QtCore.pyqtSignal()
+    sig_get_autofocus_image = QtCore.pyqtSignal()
 
     ''' Movement-related signals: '''
     sig_move_relative = QtCore.pyqtSignal(dict)
@@ -290,7 +291,12 @@ class mesoSPIM_Core(QtCore.QObject):
         if state == 'snap':
             self.state['state']='snap'
             self.sig_state_request.emit({'state':'snap'})
-            self.snap()
+            self.snap_autofocus_image()
+
+        elif state == 'autofocus_snap':
+            self.state['state']='autofocus_snap'
+            self.sig_state_request.emit({'state':'autofocus_snap'})
+            self.snap_autofocus_image()
 
         elif state == 'run_selected_acquisition':
             self.state['state']= 'run_selected_acquisition'
@@ -328,6 +334,7 @@ class mesoSPIM_Core(QtCore.QObject):
     def stop(self):
         self.stopflag = True
         ''' This stopflag is a bit risky, needs to be updated'''
+        
         self.state['state']='idle'
         self.sig_update_gui_from_state.emit(False)
         self.sig_finished.emit()
@@ -491,6 +498,16 @@ class mesoSPIM_Core(QtCore.QObject):
         self.waveformer.run_tasks()
         self.waveformer.stop_tasks()
         self.waveformer.close_tasks()
+    
+    def snap_autofocus_image(self):
+        self.sig_prepare_live.emit()
+        self.open_shutters()
+        self.snap_image()
+        self.sig_get_autofocus_image.emit()
+        self.close_shutters()
+        self.sig_end_live.emit()
+        self.sig_finished.emit()
+        QtWidgets.QApplication.processEvents()
 
     def prepare_image_series(self):
         '''Prepares an image series without waveform update'''

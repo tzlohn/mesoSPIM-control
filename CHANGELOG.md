@@ -31,7 +31,7 @@ from your microscope (are now logged in the metadata files after an acquisition)
 * :bug: **Bugfix #34:** Fixed: Last frame in a stack is blank due to an off-by-one error
 * :bug: **Bugfix #35:** Fixed: Software crashes when one folder (to save data in) in the acquisition list does not exist
 
---
+---
 
 ## Version [0.1.2] - August 19th, 2019
 * **New:** Logging is now supported. Logfiles go in the `log` folder. 

@@ -67,10 +67,11 @@ class mesoSPIM_Camera(QtCore.QObject):
         self.parent.sig_prepare_live.connect(self.prepare_live, type = 3)
         self.parent.sig_get_live_image.connect(self.get_live_image)
         self.parent.sig_get_snap_image.connect(self.snap_image)
+        self.parent.sig_get_autofocus_image.connect(self.snap_autofocus_image)
         self.parent.sig_end_live.connect(self.end_live, type=3)
 
         ''' Set up the camera '''
-        if self.cfg.camera == 'HamamatsuOrca':
+        if self.cfg.camera == 'HamamatsuOrca':  
             self.camera = mesoSPIM_HamamatsuCamera(self)
         elif self.cfg.camera == 'PhotometricsIris15':
             self.camera = mesoSPIM_PhotometricsCamera(self)
@@ -242,10 +243,13 @@ class mesoSPIM_Camera(QtCore.QObject):
         tifffile.imsave(path, image, photometric='minisblack')
 
     @QtCore.pyqtSlot()
-    def snap_live_image(self):
+    def snap_autofocus_image(self):
         ''' Used to   '''
         image = self.camera.get_image()
         image = np.rot90(image)
+
+        ''' Do autofocus computation here '''
+        print('Autofocus image taken')    
 
         self.sig_camera_frame.emit(image[0:self.x_pixels:self.camera_display_snap_subsampling,0:self.y_pixels:self.camera_display_snap_subsampling])
 

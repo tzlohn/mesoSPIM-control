@@ -325,6 +325,7 @@ class mesoSPIM_MainWindow(QtWidgets.QMainWindow):
         
         self.LiveButton.clicked.connect(self.run_live)
         self.SnapButton.clicked.connect(self.run_snap)
+        self.SnapAutofocusImageButton.clicked.connect(self.run_autofocus_snap)
         self.RunSelectedAcquisitionButton.clicked.connect(self.run_selected_acquisition)
         self.RunAcquisitionListButton.clicked.connect(self.run_acquisition_list)
         self.StopButton.clicked.connect(lambda: self.sig_state_request.emit({'state':'idle'}))
@@ -484,6 +485,12 @@ class mesoSPIM_MainWindow(QtWidgets.QMainWindow):
 
     def run_snap(self):
         self.sig_state_request.emit({'state':'snap'})
+        self.set_progressbars_to_busy()
+        self.enable_mode_control_buttons(False)
+        self.enable_stop_button(True)
+
+    def run_autofocus_snap(self):
+        self.sig_state_request.emit({'state':'autofocus_snap'})
         self.set_progressbars_to_busy()
         self.enable_mode_control_buttons(False)
         self.enable_stop_button(True)
