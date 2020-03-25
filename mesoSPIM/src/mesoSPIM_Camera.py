@@ -80,6 +80,8 @@ class mesoSPIM_Camera(QtCore.QObject):
             self.camera = mesoSPIM_PhotometricsCamera(self)
         elif self.cfg.camera == 'DemoCamera':
             self.camera = mesoSPIM_DemoCamera(self)
+        elif self.cfg.camera == 'SiemensStarDemoCamera':
+            self.camera = mesoSPIM_SiemensStarDemoCamera(self)
 
         self.camera.open_camera()
 
@@ -368,6 +370,50 @@ class mesoSPIM_DemoCamera(mesoSPIM_GenericCamera):
         data = np.around(data).astype('uint16')
         self.count += 20
         return data
+
+    def get_images_in_series(self):
+        return [self._create_random_image()]
+
+    def get_image(self):
+        return self._create_random_image()
+
+    def get_live_image(self):
+        return [self._create_random_image()]
+
+class mesoSPIM_SiemensStarDemoCamera(mesoSPIM_GenericCamera):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+
+        self.count = 0
+        self.parent = parent
+        self.cfg = parent.cfg
+
+        self.state = mesoSPIM_StateSingleton()
+
+        from skimage import io
+        from skimage.filters import gaussian
+
+        self.siemens_star = io.imread('src/utils/siemens_star1024.tif')
+        
+        #self.line = np.linspace(0,6*np.pi,self.x_pixels)
+        #self.line = 400*np.sin(self.line)+1200
+
+    def open_camera(self):
+        logger.info('Initialized Demo Camera')
+
+    def close_camera(self):
+        logger.info('Closed Demo Camera')
+    
+    def set_binning(self, binning_string):
+        self.x_binning = int(binning_string[0])
+        self.y_binning = int(binning_string[2])
+        self.x_pixels = int(self.x_pixels / self.x_binning)
+        self.y_pixels = int(self.y_pixels / self.y_binning)
+        
+        self.state['camera_binning'] = str(self.x_binning)+'x'+str(self.y_binning)
+
+    def _create_random_image(self):
+        return self.siemens_star + 500 + (np.random.normal(size=(1024, 1024))*25)
 
     def get_images_in_series(self):
         return [self._create_random_image()]
