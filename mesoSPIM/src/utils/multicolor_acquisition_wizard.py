@@ -7,7 +7,7 @@ Widgets that take user input and create acquisition lists
 import numpy as np
 import pprint
 
-from PyQt5 import QtCore, QtGui, QtWidgets, sip
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtProperty
 
 from .multicolor_acquisition_builder import MulticolorTilingAcquisitionListBuilder
@@ -435,6 +435,7 @@ class CheckTilingPage(QtWidgets.QWizardPage):
     def initializePage(self):
         ''' Here, the acquisition list is created for further checking'''
         self.parent.update_image_counts()
+        self.parent.checked_tile = np.ones((self.parent.x_image_count,self.parent.y_image_count), dtype = bool)
         self.xFOVs.setText(str(self.parent.x_image_count))
         self.yFOVs.setText(str(self.parent.y_image_count))
 
@@ -457,7 +458,6 @@ class CheckTilingPage(QtWidgets.QWizardPage):
             Smart tiling will give users options to select the tiles which don't contain interesting information, and thereby
             skipped their acquisitions.
         '''
-        self.parent.checked_tile = np.ones((self.parent.x_image_count,self.parent.y_image_count), dtype = bool)
         self.first_toggle = True
         self.buttons = []
         
@@ -516,9 +516,19 @@ class CheckTilingPage(QtWidgets.QWizardPage):
         Users can observe whether this tile is interesting from the camera
         '''
         theButton = self.sender()
+        if self.parent.x_end-self.parent.x_start < 0:
+            x_offset = self.parent.x_offset * -1
+        else:
+            x_offset = self.parent.x_offset
+        if self.parent.y_end-self.parent.y_start < 0:
+            y_offset = self.parent.y_offset * -1
+        else:
+            y_offset = self.parent.y_offset           
+
         if theButton.isChecked():
-            new_x = self.parent.x_start+(theButton.ind_x)*self.parent.x_offset
-            new_y = self.parent.x_start+(theButton.ind_y)*self.parent.y_offset
+            
+            new_x = self.parent.x_start+(theButton.ind_x)*x_offset
+            new_y = self.parent.x_start+(theButton.ind_y)*y_offset
             print("the stage will be sent to here (%d,%d)"% (new_x, new_y))
             self.parent.parent.parent.sig_move_absolute.emit({'x_abs':new_x})
             self.parent.parent.parent.sig_move_absolute.emit({'y_abs':new_y})
