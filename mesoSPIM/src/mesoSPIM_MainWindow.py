@@ -80,7 +80,7 @@ class mesoSPIM_MainWindow(QtWidgets.QMainWindow):
         Setting up the user interface windows
         '''
 
-        loadUi('gui/mesoSPIM_MainWindow.ui', self)
+        loadUi('gui/mesoSPIM_MainWindow_new.ui', self)
         self.setWindowTitle('mesoSPIM Main Window')
 
         self.camera_window = mesoSPIM_CameraWindow(self)
@@ -306,7 +306,7 @@ class mesoSPIM_MainWindow(QtWidgets.QMainWindow):
         self.zMinusButton.pressed.connect(lambda: self.sig_move_relative.emit({'z_rel': -self.xyzIncrementSpinbox.value()}))
         self.focusPlusButton.pressed.connect(lambda: self.sig_move_relative.emit({'f_rel': self.focusIncrementSpinbox.value()}))
         self.focusMinusButton.pressed.connect(lambda: self.sig_move_relative.emit({'f_rel': -self.focusIncrementSpinbox.value()}))
-
+        
         self.rotPlusButton.pressed.connect(lambda: self.sig_move_relative.emit({'theta_rel': self.rotIncrementSpinbox.value()}))
         self.rotMinusButton.pressed.connect(lambda: self.sig_move_relative.emit({'theta_rel': -self.rotIncrementSpinbox.value()}))
 
@@ -331,6 +331,7 @@ class mesoSPIM_MainWindow(QtWidgets.QMainWindow):
         #self.StopButton.clicked.connect(lambda: print('Stopping'))
         self.LightsheetSwitchingModeButton.clicked.connect(self.run_lightsheet_alignment_mode)
         self.VisualModeButton.clicked.connect(self.run_visual_mode)
+        self.AutofocusButton.pressed.connect(self.core.autofocus)
 
         self.ETLIncrementSpinBox.valueChanged.connect(self.update_etl_increments)
         self.ZeroLeftETLButton.toggled.connect(self.zero_left_etl)
