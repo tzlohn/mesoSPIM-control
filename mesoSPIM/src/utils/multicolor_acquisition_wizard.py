@@ -195,17 +195,39 @@ class DefineBoundingBoxPage(QtWidgets.QWizardPage):
         self.parent = parent
 
         self.setTitle("Define the bounding box of the tiling acquisition")
-        self.setSubTitle("Move XY stages to the starting corner position")
+        #self.setSubTitle("Move XY stages to the starting corner position")
+        
+        self.input_x_Label = QtWidgets.QLabel("Enter the x position to move:")
+        self.input_x = QtWidgets.QLineEdit(self)
+        self.input_x.setText("0")
+        
+        self.input_y_Label = QtWidgets.QLabel("Enter the y position to move:")
+        self.input_y = QtWidgets.QLineEdit(self)
+        self.input_y.setText("0")
 
+        self.input_z_Label = QtWidgets.QLabel("Enter the z position to move:")
+        self.input_z = QtWidgets.QLineEdit(self)
+        self.input_z.setText("0")
+
+        self.button_move = QtWidgets.QPushButton(self)
+        self.button_move.setText("move to the position")
+        self.button_move.clicked.connect(self.move_stages)
+        
         self.button0 = QtWidgets.QPushButton(self)
         self.button0.setText('Set XY Start Corner')
         self.button0.setCheckable(True)
         self.button0.toggled.connect(self.get_xy_start_position)
 
+        self.showStart = QtWidgets.QLineEdit(self)
+        self.showStart.setReadOnly(True)
+                
         self.button1 = QtWidgets.QPushButton(self)
         self.button1.setText('Set XY End Corner')
         self.button1.setCheckable(True)
         self.button1.toggled.connect(self.get_xy_end_position)
+
+        self.showEnd = QtWidgets.QLineEdit(self)
+        self.showEnd.setReadOnly(True)
 
         self.ZStartButton = QtWidgets.QPushButton(self)
         self.ZStartButton.setText('Set Z start')
@@ -233,21 +255,34 @@ class DefineBoundingBoxPage(QtWidgets.QWizardPage):
                             )
 
         self.layout = QtWidgets.QGridLayout()
-        self.layout.addWidget(self.button0, 0, 0)
-        self.layout.addWidget(self.button1, 1, 1)
-        self.layout.addWidget(self.ZStartButton, 2, 0)
-        self.layout.addWidget(self.ZEndButton, 2, 1)
-        self.layout.addWidget(self.ZSpinBoxLabel, 3, 0)
-        self.layout.addWidget(self.ZStepSpinBox, 3, 1)
+        self.layout.addWidget(self.input_x_Label, 0, 0)
+        self.layout.addWidget(self.input_x, 1, 0)
+        self.layout.addWidget(self.input_y_Label, 0, 1)
+        self.layout.addWidget(self.input_y, 1, 1)
+        
+        self.layout.addWidget(self.input_z_Label, 2, 0)
+        self.layout.addWidget(self.input_z, 3, 0)
+        self.layout.addWidget(self.button_move, 2, 1, 1, 2)
+
+        self.layout.addWidget(self.button0, 4, 0)
+        self.layout.addWidget(self.showStart,4, 1)
+        self.layout.addWidget(self.button1, 5, 1)
+        self.layout.addWidget(self.showEnd, 5, 0)
+        self.layout.addWidget(self.ZStartButton, 6, 0)
+        self.layout.addWidget(self.ZEndButton, 6, 1)
+        self.layout.addWidget(self.ZSpinBoxLabel, 7, 0)
+        self.layout.addWidget(self.ZStepSpinBox, 7, 1)
         self.setLayout(self.layout)
 
     def get_xy_start_position(self):
         self.parent.x_start = self.parent.state['position']['x_pos']
         self.parent.y_start = self.parent.state['position']['y_pos']
+        self.showStart.setText("(%d,%d)"%(self.parent.x_start,self.parent.y_start))
         
     def get_xy_end_position(self):
         self.parent.x_end = self.parent.state['position']['x_pos']
-        self.parent.y_end = self.parent.state['position']['y_pos']    
+        self.parent.y_end = self.parent.state['position']['y_pos']
+        self.showEnd.setText("(%d,%d)"%(self.parent.x_end,self.parent.y_end))    
 
     def update_z_start_position(self):
         self.parent.z_start = self.parent.state['position']['z_pos']
@@ -257,6 +292,15 @@ class DefineBoundingBoxPage(QtWidgets.QWizardPage):
 
     def update_z_step(self):
         self.parent.z_step = self.ZStepSpinBox.value()
+    
+    def move_stages(self):
+        x_pos = int(self.input_x.text())
+        y_pos = int(self.input_y.text())
+        z_pos = int(self.input_z.text())
+
+        self.parent.parent.parent.sig_move_absolute.emit({'x_abs':x_pos})
+        self.parent.parent.parent.sig_move_absolute.emit({'y_abs':y_pos})
+        self.parent.parent.parent.sig_move_absolute.emit({'z_abs':z_pos})
 
 class DefineGeneralParametersPage(QtWidgets.QWizardPage):
     
@@ -528,8 +572,8 @@ class CheckTilingPage(QtWidgets.QWizardPage):
         if theButton.isChecked():
             
             new_x = self.parent.x_start+(theButton.ind_x)*x_offset
-            new_y = self.parent.x_start+(theButton.ind_y)*y_offset
-            print("the stage will be sent to here (%d,%d)"% (new_x, new_y))
+            new_y = self.parent.y_start+(theButton.ind_y)*y_offset
+            print("the stage will be sent to (%d,%d)"% (new_x, new_y))
             self.parent.parent.parent.sig_move_absolute.emit({'x_abs':new_x})
             self.parent.parent.parent.sig_move_absolute.emit({'y_abs':new_y})
         else:
