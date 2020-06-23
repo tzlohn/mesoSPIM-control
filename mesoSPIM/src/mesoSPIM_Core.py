@@ -1079,19 +1079,20 @@ class mesoSPIM_Core(QtCore.QObject):
         k_spectrum = np.fft.fft2(image)
         k_spectrum = np.fft.fftshift(k_spectrum)
         k_spectrum = np.abs(k_spectrum)
+        k_spectrum = np.multiply(k_spectrum,k_spectrum)
 
         mass = np.sum(k_spectrum)
+        prob = k_spectrum/mass
 
         y_list = np.asmatrix(range(image.shape[0]))
         x_list = np.asmatrix(range(image.shape[1]))
-        mean_x = np.sum(np.dot(k_spectrum, np.transpose(x_list)))/mass
-        mean_y = np.sum(np.dot(y_list,k_spectrum))/mass
-
-        y_list_2nd = np.multiply(y_list-mean_y, y_list-mean_y)
-        x_list_2nd = np.multiply(x_list-mean_x, x_list-mean_x)
-        std_x = np.sum(np.dot(k_spectrum, np.transpose(x_list_2nd)))/mass
-        std_y = np.sum(np.dot(y_list_2nd,k_spectrum))/mass
-        return (np.sqrt(std_x) + np.sqrt(std_y))/2
+        mean_x = np.sum(np.dot(prob, np.transpose(x_list)))
+        mean_y = np.sum(np.dot(y_list,prob))
+        width_x = np.sum(np.multiply(prob,np.transpose(np.multiply(x_list,x_list))))
+        width_x = np.sqrt(width_x-mean_x*mean_x)
+        width_y = np.sum(np.multiply(np.multiply(x_list,x_list),prob))
+        width_y = np.sqrt(width_y-mean_y*mean_y)
+        return (width_x + width_y)/2
 
     def return_image(self):
         self.camera_worker.camera.initialize_live_mode()
@@ -1120,55 +1121,55 @@ class mesoSPIM_Core(QtCore.QObject):
         #       take images
         #       send image to function 1, get new std
         '''
-        # magic number
-        f_step = 10
-        ##############
+        f_step = self.parent.focusIncrementSpinbox.value()
+
+        if self.state['state'] != "idle":
+            self.sig_state_request.emit({'state':'idle'})
+            self.stop()
 
         initial_f = self.parent.state['position']['f_pos']
         new_f = initial_f + f_step
         self.sig_move_absolute.emit({'f_abs':new_f})
 
         self.open_shutters()
-        print("test_positive")
-        print(self.parent.state['position']['f_pos'])   
+        print("test_positive") 
         image = self.return_image()
-        print(self.parent.state['position']['f_pos']) 
         width_positive = self.get_width_in_k(image)
-        print("width_positive:%.3f"%(width_positive)) 
+        print("width_positive:%.3f"%(width_positive))
+        self.close_shutters() 
 
         new_f = initial_f - f_step
+        self.open_shutters()
         print("test negative")
         self.sig_move_absolute.emit({'f_abs':new_f})
-        print(self.parent.state['position']['f_pos'])
         image = self.return_image()
-        print(self.parent.state['position']['f_pos'])
         image = self.return_image()
         width_negative = self.get_width_in_k(image)
         print("width_negative:%.3f"%(width_negative))
+        self.close_shutters() 
 
         if width_negative > width_positive:
             f_step = f_step*-1
             current_width = width_negative
         else:
             current_width = width_positive
-        new_width = current_width+1
+        new_width = current_width
         new_f = initial_f + f_step
         n = 0
-        print(new_f)
+        print("%d,%3f"%(new_f,new_width))
         
-        print("loop_starts")
-        while new_width - current_width > 0:
+        print("********loop_starts**********")
+        self.open_shutters() 
+        while new_width - current_width >= 0 and new_f < 90000:
             current_width = new_width
-            new_f = new_f + f_step
-            print(new_f)
+            new_f = new_f + f_step            
             self.sig_move_absolute.emit({'f_abs':new_f})
             image = self.return_image()
             new_width = self.get_width_in_k(image)
             n = n+1
             print("%d,%3f"%(self.parent.state['position']['f_pos'],new_width))
-        print("loop_ends")
+        self.close_shutters()                 
+        print("********loop_ends***********")
         
-        self.sig_move_absolute_and_wait_until_done.emit({'f_abs':new_f})
-        print(self.parent.state['position']['f_pos'])
-        self.close_shutters()
-        print(new_f)
+        self.sig_move_absolute_and_wait_until_done.emit({'f_abs':new_f-f_step})
+        print(new_f-f_step)

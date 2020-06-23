@@ -5,19 +5,20 @@ def get_width_in_k(self,image):
     k_spectrum = np.fft.fft2(image)
     k_spectrum = np.fft.fftshift(k_spectrum)
     k_spectrum = np.abs(k_spectrum)
+    k_spectrum = np.multiply(k_spectrum,k_spectrum)
 
     mass = np.sum(k_spectrum)
+    prob = k_spectrum/mass
 
     y_list = np.asmatrix(range(image.shape[0]))
     x_list = np.asmatrix(range(image.shape[1]))
-    mean_x = np.sum(np.dot(k_spectrum, np.transpose(x_list)))/mass
-    mean_y = np.sum(np.dot(y_list,k_spectrum))/mass
-
-    y_list_2nd = np.multiply(y_list-mean_y, y_list-mean_y)
-    x_list_2nd = np.multiply(x_list-mean_x, x_list-mean_x)
-    std_x = np.sum(np.dot(k_spectrum, np.transpose(x_list_2nd)))/mass
-    std_y = np.sum(np.dot(y_list_2nd,k_spectrum))/mass
-    return (np.sqrt(std_x) + np.sqrt(std_y))/2
+    mean_x = np.sum(np.dot(prob, np.transpose(x_list)))
+    mean_y = np.sum(np.dot(y_list,prob))
+    width_x = np.sum(np.multiply(prob,np.transpose(np.multiply(x_list,x_list))))
+    width_x = np.sqrt(width_x-mean_x*mean_x)
+    width_y = np.sum(np.multiply(np.multiply(x_list,x_list),prob))
+    width_y = np.sqrt(width_y-mean_y*mean_y)
+    return (width_x + width_y)/2
 
 def autofocus(self):
     '''
