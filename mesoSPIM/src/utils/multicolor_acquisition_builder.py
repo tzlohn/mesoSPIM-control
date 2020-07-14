@@ -57,6 +57,24 @@ class MulticolorTilingAcquisitionListBuilder():
             self.y_offset = -self.dict['y_offset']
 
         '''
+        remove redundant channels
+        '''
+        all_c_id = []
+        c_no = len(self.dict['channels'])
+        p = 0
+        for n in range(c_no):
+            the_channel = self.dict['channels'][p]
+            c_id = the_channel["Id"]
+            if c_id in all_c_id:
+                obsolete_c_id = all_c_id.index(c_id)
+                self.dict['channels'].pop(p)
+                self.dict['channels'][obsolete_c_id] = the_channel           
+            else:
+                all_c_id.append(c_id)
+                p=p+1
+
+
+        '''
         Core loop: Create an acquisition list for all x & y & channel values
         '''
         tilecount = 0

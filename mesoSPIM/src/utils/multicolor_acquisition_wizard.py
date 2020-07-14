@@ -112,8 +112,8 @@ class MulticolorTilingWizard(QtWidgets.QWizard):
         self.delta_y = abs(self.y_end - self.y_start)
 
         ''' Using the ceiling function to always create at least 1 image '''
-        self.x_image_count = int(np.ceil(self.delta_x/self.x_offset))
-        self.y_image_count = int(np.ceil(self.delta_y/self.y_offset))
+        self.x_image_count = int(np.ceil(self.delta_x/self.x_offset))+1
+        self.y_image_count = int(np.ceil(self.delta_y/self.y_offset))+1
 
         ''' Create at least 1 image even if delta_x or delta_y is 0 '''
         if self.x_image_count == 0:
@@ -718,7 +718,8 @@ class GenericChannelPage(QtWidgets.QWizardPage):
             etl_r_offset = 0
             etl_r_amplitude = 0
 
-        self.parent.channels.append({'laser':selectedLaser, 
+        self.parent.channels.append({'Id': self.channel_id,
+                                    'laser':selectedLaser, 
                                     'intensity':selectedIntensity,
                                     'filter':selectedFilter,
                                     'f_start':f_start,
