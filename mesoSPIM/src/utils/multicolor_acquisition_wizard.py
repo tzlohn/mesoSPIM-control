@@ -331,7 +331,7 @@ class DefineGeneralParametersPage(QtWidgets.QWizardPage):
         self.fovSizeLineEdit = QtWidgets.QLineEdit(self)
         self.fovSizeLineEdit.setReadOnly(True)
         
-        self.overlapPercentageCheckBox = QtWidgets.QCheckBox('Overlap %', self)
+        self.overlapPercentageCheckBox = QtWidgets.QCheckBox('Minimum overlap %', self)
         self.overlapLabel = QtWidgets.QLabel('Overlap in %')
         self.overlapPercentageSpinBox = QtWidgets.QSpinBox(self)
         self.overlapPercentageSpinBox.setSuffix(' %')
@@ -413,6 +413,23 @@ class DefineGeneralParametersPage(QtWidgets.QWizardPage):
         new_offset_percentage = self.overlapPercentageSpinBox.value()
         x_offset = int(self.parent.x_fov * (1-new_offset_percentage / 100))
         y_offset = int(self.parent.y_fov * (1-new_offset_percentage / 100))
+        """
+        16.07.2020 TLO
+        offsets/overlap ratio are recalculate to make the start and end positions identical as the assignment.
+        In the past, when offset is given, the modified end position will be changed according to the equation: 
+        x_end_modified = x_start + offset* x_counts
+        
+        In the new version, offset will be recalulated to fix the x_end position
+        If you need a fixed offset instead of fix end positions, please check the set offset manually. At that part the
+        manually set offset won't be calculated automatically and keep fixed.
+        """
+        x_count = np.ceil(abs(self.parent.x_end-self.parent.x_start)/x_offset)
+        y_count = np.ceil(abs(self.parent.y_end-self.parent.y_start)/y_offset)
+        if x_count != 0:
+            x_offset = abs(self.parent.x_end-self.parent.x_start)/x_count
+        if y_count != 0:
+            y_offset = abs(self.parent.y_end-self.parent.y_start)/y_count    
+                
         self.xOffsetSpinBox.setValue(x_offset)
         self.yOffsetSpinBox.setValue(y_offset)
 
