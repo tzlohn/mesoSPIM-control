@@ -363,12 +363,17 @@ class mesoSPIM_Core(QtCore.QObject):
 
     @QtCore.pyqtSlot(dict)
     def set_zoom(self, zoom, wait_until_done=False, update_etl=True):
+        galvo_voltage = self.cfg.galvo_amplitude[zoom]
         if wait_until_done:
             self.sig_state_request_and_wait_until_done.emit({'zoom' : zoom})
+            self.sig_state_request_and_wait_until_done.emit({'galvo_l_amplitude': galvo_voltage})
+            self.sig_state_request_and_wait_until_done.emit({'galvo_r_amplitude': galvo_voltage})
             if update_etl:
                 self.sig_state_request_and_wait_until_done.emit({'set_etls_according_to_zoom' : zoom})
         else:
             self.sig_state_request.emit({'zoom' : zoom})
+            self.sig_state_request.emit({'galvo_l_amplitude': galvo_voltage})
+            self.sig_state_request.emit({'galvo_r_amplitude': galvo_voltage})
             if update_etl:
                 self.sig_state_request.emit({'set_etls_according_to_zoom' : zoom})
 
