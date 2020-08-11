@@ -652,16 +652,23 @@ class GenericChannelPage(QtWidgets.QWizardPage):
 
         self.StartFocusLabel = QtWidgets.QLabel('Start focus')
         self.StartFocusButton = QtWidgets.QPushButton(self)
-        self.StartFocusButton.setText('Set start focus')
+        self.StartFocusButton.setText('Set focus at position 1')
         self.StartFocusButton.setCheckable(True)
         self.StartFocusButton.toggled.connect(self.update_start_focus_position)
 
         self.EndFocusLabel = QtWidgets.QLabel('End focus')
         self.EndFocusButton = QtWidgets.QPushButton(self)
-        self.EndFocusButton.setText('Set end focus')
+        self.EndFocusButton.setText('Set focus at position 2')
         self.EndFocusButton.setCheckable(True)
         self.EndFocusButton.toggled.connect(self.update_end_focus_position)
 
+        self.showz1f1 = QtWidgets.QLineEdit(self)
+        self.showz1f1.setReadOnly(True)
+
+        self.showz2f2 = QtWidgets.QLineEdit(self)
+        self.showz2f2.setReadOnly(True)
+
+        """
         self.GoToZStartButton = QtWidgets.QPushButton(self)
         self.GoToZStartButton.setText('Go to Z start')
         self.GoToZStartButton.clicked.connect(lambda: self.go_to_z_position(self.parent.z_start))
@@ -669,6 +676,7 @@ class GenericChannelPage(QtWidgets.QWizardPage):
         self.GoToZEndButton = QtWidgets.QPushButton(self)
         self.GoToZEndButton.setText('Go to Z end')
         self.GoToZEndButton.clicked.connect(lambda: self.go_to_z_position(self.parent.z_end))
+        """
 
         self.registerField('start_focus_position'+str(self.channel_id)+'*',
                             self.StartFocusButton,
@@ -691,10 +699,12 @@ class GenericChannelPage(QtWidgets.QWizardPage):
         self.layout.addWidget(self.ETLCheckBox, 4, 1, 1, 2)
         self.layout.addWidget(self.StartFocusLabel, 5, 0, 1, 1)
         self.layout.addWidget(self.StartFocusButton, 5, 1, 1, 1)
-        self.layout.addWidget(self.GoToZStartButton, 5, 2, 1, 1)
+        #self.layout.addWidget(self.GoToZStartButton, 5, 2, 1, 1)
+        self.layout.addWidget(self.showz1f1, 5, 2, 1, 1)
         self.layout.addWidget(self.EndFocusLabel, 6, 0, 1, 1)
         self.layout.addWidget(self.EndFocusButton, 6, 1, 1, 1)
-        self.layout.addWidget(self.GoToZEndButton, 6, 2, 1, 1)
+        #self.layout.addWidget(self.GoToZEndButton, 6, 2, 1, 1)
+        self.layout.addWidget(self.showz2f2, 6, 2, 1, 1)
         self.setLayout(self.layout)
 
     def initializePage(self):
@@ -706,21 +716,44 @@ class GenericChannelPage(QtWidgets.QWizardPage):
         self.filterComboBox.setCurrentText(self.parent.state['filter'])
 
     def update_start_focus_position(self):
-        self.f_start = self.parent.state['position']['f_pos']
+        #self.f_start = self.parent.state['position']['f_pos']
+        self.f1 = self.parent.state['position']['f_pos']
+        self.z1 = self.parent.state['position']['z_pos']
+        self.showz1f1.setText("z1 = %.2f, f1 = %.2f"%(self.z1,self.f1))
 
     def update_end_focus_position(self):
-        self.f_end = self.parent.state['position']['f_pos']
+        #self.f_end = self.parent.state['position']['f_pos']
+        self.f2 = self.parent.state['position']['f_pos']
+        self.z2 = self.parent.state['position']['z_pos']
+        if round(self.z2) ==  round(self.z1):
+            self.f2 = self.f1
+            self.showz2f2.setText("Don't assign 2 f positions to 1 z position, ok?")
 
+        else:
+            self.z2 = self.parent.state['position']['z_pos']
+            self.showz2f2.setText("z2 = %.2f, f2 = %.2f"%(self.z2,self.f2))
+        
+    """
     def go_to_z_position(self, z):
         self.parent.parent.parent.sig_move_absolute.emit({'z_abs':z})
         #try:
         #except:
         #    print('Move absolute is not possible!')
+    """
+    def calculate_f_extreme(self):
+        if self.z1 != self.z2:
+            slope = (self.f2-self.f1)/(self.z2-self.z1)
+            self.f_start = slope*(self.parent.z_start-self.z1)+self.f1
+            self.f_end = slope*(self.parent.z_end-self.z1)+self.f1
+        else:
+            self.f_start = self.z1
+            self.f_end = self.z1
 
     def validatePage(self):
         selectedIntensity =  self.intensitySlider.value()
         selectedLaser = self.laserComboBox.currentText()
         selectedFilter = self.filterComboBox.currentText()
+        self.calculate_f_extreme()
         f_start = self.f_start
         f_end = self.f_end
 
