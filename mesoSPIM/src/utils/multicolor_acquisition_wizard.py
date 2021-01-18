@@ -725,16 +725,13 @@ class GenericChannelPage(QtWidgets.QWizardPage):
         #self.f_end = self.parent.state['position']['f_pos']
         self.f2 = self.parent.state['position']['f_pos']
         self.z2 = self.parent.state['position']['z_pos']
-        if hasattr(self,"z1"):
-            if round(self.z2) ==  round(self.z1):
-                self.f2 = self.f1
-                self.showz2f2.setText("Don't assign 2 f positions to 1 z position, ok?")
-            else:
-                self.z2 = self.parent.state['position']['z_pos']
-                self.showz2f2.setText("z2 = %.2f, f2 = %.2f"%(self.z2,self.f2))
+        if round(self.z2) ==  round(self.z1):
+            self.f2 = self.f1
+            self.showz2f2.setText("Don't assign 2 f positions to 1 z position, ok?")
+
         else:
             self.z2 = self.parent.state['position']['z_pos']
-            self.showz2f2.setText("z2 = %.2f, f2 = %.2f"%(self.z2,self.f2))    
+            self.showz2f2.setText("z2 = %.2f, f2 = %.2f"%(self.z2,self.f2))
         
     """
     def go_to_z_position(self, z):
