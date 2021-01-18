@@ -177,7 +177,7 @@ class mesoSPIM_Camera(QtCore.QObject):
 
         self.fsize = self.x_pixels*self.y_pixels
 
-        self.xy_stack = np.memmap(self.path, mode = "write", dtype = np.uint16, shape = self.fsize * self.max_frame)
+        #self.xy_stack = np.memmap(self.path, mode = "write", dtype = np.uint16, shape = self.fsize * self.max_frame)
 
         self.camera.initialize_image_series()
         self.cur_image = 0
@@ -196,8 +196,9 @@ class mesoSPIM_Camera(QtCore.QObject):
                 for image in images:
                     image = np.rot90(image)
                     self.sig_camera_frame.emit(image[0:self.x_pixels:self.camera_display_acquisition_subsampling,0:self.y_pixels:self.camera_display_acquisition_subsampling])
-                    image = image.flatten()
-                    self.xy_stack[self.cur_image*self.fsize:(self.cur_image+1)*self.fsize] = image
+                    #image = image.flatten()
+                    #self.xy_stack[self.cur_image*self.fsize:(self.cur_image+1)*self.fsize] = image
+                    tifffile.imwrite(self.path,image,dtype = np.uint16,append = True)
                     self.cur_image += 1
 
     @QtCore.pyqtSlot()
@@ -212,7 +213,7 @@ class mesoSPIM_Camera(QtCore.QObject):
                     max_proj = np.max(stackview, axis=0)
                     filename = 'MAX_' +self.filename + '.tif'
                     path = self.folder+'/'+filename
-                    tifffile.imsave(path, max_proj, photometric='minisblack')
+                    tifffile.imwrite(path, max_proj, photometric='minisblack')
                     logger.info('Camera: Saved Max Projection')
                     self.sig_status_message.emit('Done with image processing')
 

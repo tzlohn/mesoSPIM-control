@@ -8,7 +8,7 @@ import time
 from scipy import signal
 import csv
 import traceback
-import tifffile as TFF
+import tifffile
 
 import logging
 logger = logging.getLogger(__name__)
@@ -596,9 +596,11 @@ class mesoSPIM_Core(QtCore.QObject):
                     x_pixels = int(self.cfg.camera_parameters['x_pixels']/x_binning)
                     y_pixels = int(self.cfg.camera_parameters['y_pixels']/y_binning)
                     max_frame = acq.get_image_count()
-                    fsize = x_pixels*y_pixels                    
-                    xy_stack = np.memmap(path, mode = "write", dtype = np.uint16, shape = fsize * max_frame)
-                    xy_stack = np.zeros(shape = fsize * max_frame, dtype = np.uint16)
+                    fsize = x_pixels*y_pixels
+                    xy_stack = np.random.randint(1,high = 65535, size = (max_frame,y_pixels,x_pixels),dtype = np.uint16)
+                    tifffile.imwrite(path,xy_stack)                    
+                    #xy_stack = np.memmap(path, mode = "write", dtype = np.uint16, shape = fsize * max_frame)
+                    #xy_stack = np.zeros(shape = fsize * max_frame, dtype = np.uint16)
                     self.write_metadata(acq)
 
 

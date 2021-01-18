@@ -121,7 +121,8 @@ class FilenameWizard(QtWidgets.QWizard):
                 filename += shutterstring
                 filename += '_'
 
-            file_suffix = num_string[:-len(start_number_string)]+start_number_string + '.raw'
+            #file_suffix = num_string[:-len(start_number_string)]+start_number_string + '.raw'
+            file_suffix = num_string[:-len(start_number_string)]+start_number_string + '.tif'
 
             start_number += 1
             start_number_string = str(start_number)
